@@ -8,5 +8,6 @@
     "source.fixAll": "always"
   },
   "files.eol": "\n",
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "cSpell.words": ["Avinav"]
 }
