@@ -10,6 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/avinav456/fragments.git"
   },
-  "author": "Avinav", 
-  "license": "UNLICENSED"
+  "author": "Avinav",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
 }
