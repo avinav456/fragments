@@ -6,6 +6,9 @@ const stoppable = require('stoppable');
 // Get our logger instance
 const logger = require('./logger');
 
+
+
+
 // Get our express app instance
 const app = require('./app');
 
@@ -20,5 +23,9 @@ const server = stoppable(
   })
 );
 
+// Print all environment variables when running in debug mode
+if (process.env.LOG_LEVEL === 'debug') {
+  logger.debug({ env: process.env }, 'Process environment variables');
+}
 // Export our server instance so other parts of our code can access it if necessary.
 module.exports = server;
