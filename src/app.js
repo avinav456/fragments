@@ -9,6 +9,8 @@ const compression = require('compression');
 // TODO: make sure you have updated your name in the `author` section
 // const { author, version } = require('../package.json');
 
+const passport = require('passport');
+const authenticate = require('./auth');
 const logger = require('./logger');
 const pino = require('pino-http')({
   // Use our default logger instance, which is already configured
@@ -29,6 +31,27 @@ app.use(cors());
 
 // Use gzip/deflate compression middleware
 app.use(compression());
+
+//Code to use the new strategy
+// modifications to src/app.js
+// Use gzip/deflate compression middleware
+app.use(compression());
+
+// Set up our passport authentication middleware
+passport.use(authenticate.strategy());
+app.use(passport.initialize());
+
+// Define our routes
+app.use('/', require('./routes'));
+
+
+
+
+
+
+
+
+
 
 // Define a simple health check route. If the server is running
 // we'll respond with a 200 OK.  If not, the server isn't healthy.
