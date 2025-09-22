@@ -26,5 +26,4 @@ process.on('unhandledRejection', (reason, promise) => {
 require('./server');
 
 
-// Eslint error in CI
-const unneededVariable = 'This variable is never used';
+
