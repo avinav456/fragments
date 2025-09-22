@@ -17,6 +17,10 @@ const pino = require('pino-http')({
   logger,
 });
 
+//  Use centralized response helpers so all payloads are consistent
+const { createErrorResponse } = require('./response');
+
+
 // Create an express app instance we can use to attach middleware and HTTP routes
 const app = express();
 
@@ -35,7 +39,7 @@ app.use(compression());
 //Code to use the new strategy
 // modifications to src/app.js
 // Use gzip/deflate compression middleware
-app.use(compression());
+// app.use(compression());
 
 // Set up our passport authentication middleware
 passport.use(authenticate.strategy());
@@ -43,14 +47,6 @@ app.use(passport.initialize());
 
 // Define our routes
 app.use('/', require('./routes'));
-
-
-
-
-
-
-
-
 
 
 // Define a simple health check route. If the server is running
@@ -69,19 +65,15 @@ app.use('/', require('./routes'));
 //     version,
 //   });
 // });
-app.use('/', require('./routes'));
+
+// (duplicate route mount removed; routes are already mounted above)
+// app.use('/', require('./routes'));
 
 // Add 404 middleware to handle any requests for resources that can't be found
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    error: {
-      message: 'not found',
-      code: 404,
-    },
-  });
-});
-
+// Refactored to use createErrorResponse() helper
+ app.use((req,res)=>{
+  res.status(404).json(createErrorResponse(404,'not found'));
+ })
 // Add error-handling middleware to deal with anything else
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
@@ -95,14 +87,9 @@ app.use((err, req, res, next) => {
     logger.error({ err }, `Error processing request`);
   }
 
-  res.status(status).json({
-    status: 'error',
-    error: {
-      message,
-      code: status,
-    },
-  });
+ res.status(status).json(createErrorResponse(status,message));
 });
+
 
 // Export our `app` so we can access it in server.js
 module.exports = app;
