@@ -5,7 +5,7 @@
 // parsed from the Authorization header (i.e., Bearer Token).
 
 const passport = require('passport');
-const logger = require('../logger');
+
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 
