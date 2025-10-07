@@ -18,7 +18,7 @@ describe('POST /v1/fragments', () => {
     process.env = OLD_ENV;
   });
 
-  // --- Authentication -------------------------------------------------------
+  // --- Authentication 
 
   test('unauthenticated requests are denied (401)', async () => {
     await request(app).post('/v1/fragments').expect(401);
@@ -31,7 +31,7 @@ describe('POST /v1/fragments', () => {
       .expect(401);
   });
 
-  // --- Unsupported Content-Type / Body -------------------------------------
+  // --- Unsupported Content-Type / Body 
 
   test('unsupported Content-Type returns 415', async () => {
     const res = await request(app)
@@ -55,10 +55,9 @@ describe('POST /v1/fragments', () => {
     expect(res.body.status).toBe('error');
   });
 
-  // --- Success: text/plain --------------------------------------------------
-
+  // --- Success: text/plain 
   test('authenticated users can create a plain text fragment (201) with expected properties', async () => {
-    process.env.API_URL = 'http://localhost:8080'; // ensure absolute Location is deterministic
+    process.env.API_URL = 'http://localhost:8080'; 
     const payload = Buffer.from('hello world');
 
     const res = await request(app)
@@ -78,13 +77,10 @@ describe('POST /v1/fragments', () => {
       ['id', 'ownerId', 'size', 'type', 'created', 'updated'].sort()
     );
     expect(typeof frag.id).toBe('string');
-    expect(typeof frag.ownerId).toBe('string'); // hashed or string per your middleware
+    expect(typeof frag.ownerId).toBe('string'); 
     expect(frag.type).toBe('text/plain');
     expect(frag.size).toBe(payload.length);
 
-    // headers
-    // JSON response is fine; your handler sets Content-Type of the response to JSON,
-    // and Location is a full URL
     expect(res.headers.location.endsWith(`/v1/fragments/${frag.id}`)).toBe(true);
   });
 
@@ -104,10 +100,10 @@ describe('POST /v1/fragments', () => {
     expect(frag.size).toBe(payload.length);
   });
 
-  // --- Location header fallback when API_URL is not set ---------------------
+  // --- Location header fallback when API_URL is not set -
 
   test('POST response includes a full Location URL using API_URL fallback to request host', async () => {
-    delete process.env.API_URL; // force fallback path
+    delete process.env.API_URL; 
     const payload = Buffer.from('abc');
 
     const res = await request(app)
@@ -118,9 +114,83 @@ describe('POST /v1/fragments', () => {
 
     expect(res.statusCode).toBe(201);
 
-    // With no API_URL, your handler builds from req.protocol + req.get('host')
-    // We can't guarantee host here, so just assert it's a full URL and ends correctly.
     expect(res.headers.location).toMatch(/^https?:\/\//);
     expect(res.headers.location).toMatch(/\/v1\/fragments\/[0-9a-f-]+$/i);
+  });
+});
+
+
+
+const Fragment = require('../../src/model/fragment');
+
+describe('POST /v1/fragments – extra coverage', () => {
+  const BASIC_GOOD = ['user1@email.com', 'password1'];
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  test('zero-length Buffer returns 415', async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth(BASIC_GOOD[0], BASIC_GOOD[1])
+      .set('Content-Type', 'text/plain')
+      .send(Buffer.alloc(0));
+
+    expect(res.statusCode).toBe(415);
+    expect(res.body.status).toBe('error');
+    expect(res.body.error.code).toBe(415);
+  });
+
+  test('Upper-case Content-Type header still creates a fragment and returns 201', async () => {
+    process.env.API_URL = 'http://localhost:8080';
+    const payload = Buffer.from('UPPER CASE TYPE');
+
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth(BASIC_GOOD[0], BASIC_GOOD[1])
+      .set('CONTENT-TYPE', 'text/plain; charset=utf-8')
+      .send(payload);
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.fragment.type).toBe('text/plain; charset=utf-8');
+    expect(res.headers.location).toMatch(/^http:\/\/localhost:8080\/v1\/fragments\//);
+  });
+
+
+
+  test('500 returned when an unexpected error occurs while saving fragment', async () => {
+    const saveSpy = jest
+      .spyOn(Fragment.prototype, 'save')
+      .mockRejectedValueOnce(new Error('boom-save'));
+
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth(BASIC_GOOD[0], BASIC_GOOD[1])
+      .set('Content-Type', 'text/plain')
+      .send(Buffer.from('trigger error'));
+
+    expect(saveSpy).toHaveBeenCalled();
+    expect(res.statusCode).toBe(500);
+    expect(res.body.status).toBe('error');
+  });
+
+  test('500 returned when an unexpected error occurs while writing fragment data', async () => {
+    jest.spyOn(Fragment.prototype, 'save').mockResolvedValueOnce();
+    const setDataSpy = jest
+      .spyOn(Fragment.prototype, 'setData')
+      .mockRejectedValueOnce(new Error('boom-setData'));
+
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth(BASIC_GOOD[0], BASIC_GOOD[1])
+      .set('Content-Type', 'text/plain')
+      .send(Buffer.from('x'));
+
+    expect(setDataSpy).toHaveBeenCalled();
+    expect(res.statusCode).toBe(500);
+    expect(res.body.status).toBe('error');
   });
 });
