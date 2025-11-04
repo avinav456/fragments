@@ -96,7 +96,6 @@ jobs:
     with:
       username: ${{ secrets.DOCKERHUB_USERNAME }}
       password: ${{ secrets.DOCKERHUB_TOKEN }}
-  steps:
 
   # Build and Push an Image to Docker Hub
   - name: Build and push
