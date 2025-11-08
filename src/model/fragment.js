@@ -183,7 +183,7 @@
 // module.exports.Fragment = Fragment;
 
 
-// Update code is below with changes to pass the test 
+// Updated code is below with changes to pass the test 
 
 // Use crypto.randomUUID() to create unique IDs
 const { randomUUID } = require('crypto');
@@ -201,9 +201,14 @@ const {
   deleteFragment,
 } = require('./data');
 
-// Supported base mime types for Assignment 1
-// For now, we only support plain text fragments.
-const SUPPORTED = new Set(['text/plain']);
+// Supported base mime types for Assignment 2
+const SUPPORTED = new Set([
+  'text/plain',
+  'text/markdown',
+  'text/html',
+  'text/csv',
+  'application/json',
+]);
 
 /**
  * Normalize a content-type string to its base mime type (strip charset or params)
@@ -356,14 +361,106 @@ class Fragment {
 
   /**
    * Get the list of supported output formats for conversion.
-   * For A1, only text/plain is supported.
+   * For A2, ALl text/* format is supported.
    * @returns {string[]}
    */
-  get formats() {
-    const mime = this.mimeType;
-    if (mime === 'text/plain') return ['text/plain'];
-    return [mime];
+ get formats() {
+  const mime = this.mimeType;
+  
+  // Define valid conversion formats for each type
+  const conversions = {
+    'text/plain': ['text/plain'],
+    'text/markdown': ['text/markdown', 'text/html', 'text/plain'],
+    'text/html': ['text/html', 'text/plain'],
+    'text/csv': ['text/csv', 'text/plain', 'application/json'],
+    'application/json': ['application/json', 'text/plain'],
+  };
+  
+  return conversions[mime] || [mime];
+}
+
+
+///  THe below are the conversion method for Assignment 2
+/**
+ * Check if a conversion from current type to extension is valid
+ * @param {string} ext - File extension (e.g., '.html', '.txt')
+ * @returns {boolean}
+ */
+canConvertTo(ext) {
+  const extToMime = {
+    '.txt': 'text/plain',
+    '.md': 'text/markdown',
+    '.html': 'text/html',
+    '.json': 'application/json',
+    '.csv': 'text/csv',
+  };
+  
+  const targetMime = extToMime[ext];
+  if (!targetMime) return false;
+  
+  return this.formats.includes(targetMime);
+}
+
+/**
+ * Convert fragment data to the requested format
+ * @param {string} ext - File extension to convert to
+ * @returns {Promise<{data: Buffer, contentType: string}>}
+ */
+async convertData(ext) {
+  const data = await this.getData();
+  const currentMime = this.mimeType;
+  
+  // Markdown to HTML conversion
+  if (currentMime === 'text/markdown' && ext === '.html') {
+    const md = require('markdown-it')();
+    const html = md.render(data.toString());
+    return {
+      data: Buffer.from(html),
+      contentType: 'text/html',
+    };
   }
+  
+  // Markdown to plain text
+  if (currentMime === 'text/markdown' && ext === '.txt') {
+    return {
+      data: data,
+      contentType: 'text/plain',
+    };
+  }
+  
+  // Text/HTML to plain text
+  if (currentMime === 'text/html' && ext === '.txt') {
+    return {
+      data: data,
+      contentType: 'text/plain',
+    };
+  }
+  
+  // CSV to plain text
+  if (currentMime === 'text/csv' && ext === '.txt') {
+    return {
+      data: data,
+      contentType: 'text/plain',
+    };
+  }
+  
+  // JSON to plain text
+  if (currentMime === 'application/json' && ext === '.txt') {
+    return {
+      data: data,
+      contentType: 'text/plain',
+    };
+  }
+  
+  // No conversion needed - return as-is
+  return {
+    data: data,
+    contentType: this.type,
+  };
+}
+
+
+////
 
   /**
    * Validate whether a provided content type is supported.

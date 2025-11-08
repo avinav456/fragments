@@ -194,3 +194,63 @@ describe('POST /v1/fragments – extra coverage', () => {
     expect(res.body.status).toBe('error');
   });
 });
+
+
+describe('POST /v1/fragments - Multiple Types', () => {
+  test('can create text/markdown fragment', async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'text/markdown')
+      .send('# Markdown content');
+    
+    expect(res.statusCode).toBe(201);
+    expect(res.body.fragment.type).toBe('text/markdown');
+  });
+
+  test('can create text/html fragment', async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'text/html')
+      .send('<h1>HTML content</h1>');
+    
+    expect(res.statusCode).toBe(201);
+    expect(res.body.fragment.type).toBe('text/html');
+  });
+
+  test('can create text/csv fragment', async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'text/csv')
+      .send('name,age\nJohn,30');
+    
+    expect(res.statusCode).toBe(201);
+    expect(res.body.fragment.type).toBe('text/csv');
+  });
+
+  test('can create application/json fragment', async () => {
+    const jsonData = { message: 'Hello', count: 42 };
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'application/json')
+      .send(JSON.stringify(jsonData));
+    
+    expect(res.statusCode).toBe(201);
+    expect(res.body.fragment.type).toBe('application/json');
+    expect(res.body.fragment.size).toBe(JSON.stringify(jsonData).length);
+  });
+
+  test('preserves charset in content-type', async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'text/plain; charset=utf-8')
+      .send('Test with charset');
+    
+    expect(res.statusCode).toBe(201);
+    expect(res.body.fragment.type).toContain('charset=utf-8');
+  });
+});

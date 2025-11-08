@@ -20,5 +20,66 @@ describe('GET /v1/fragments', () => {
     expect(Array.isArray(res.body.fragments)).toBe(true);
   });
 
-  // TODO: we'll need to add tests to check the contents of the fragments array later
+    //  Below are the test for the authenticated request 
+
+    test('authenticated user gets empty array when no fragments exist', async () => {
+    const res = await request(app)
+      .get('/v1/fragments')
+      .auth('user1@email.com', 'password1');
+    
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(Array.isArray(res.body.fragments)).toBe(true);
+    expect(res.body.fragments).toEqual([]);
+  });
+
+  test('authenticated user gets array of fragment IDs', async () => {
+    const postRes = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'text/plain')
+      .send('Test fragment data');
+    
+    const fragmentId = postRes.body.fragment.id;
+    
+    const getRes = await request(app)
+      .get('/v1/fragments')
+      .auth('user1@email.com', 'password1');
+    
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.body.status).toBe('ok');
+    expect(Array.isArray(getRes.body.fragments)).toBe(true);
+    expect(getRes.body.fragments).toContain(fragmentId);
+  });
+
+  test('authenticated user gets expanded metadata with ?expand=1', async () => {
+    const postRes = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'text/plain')
+      .send('Test data');
+    
+    const fragmentId = postRes.body.fragment.id;
+    
+    const getRes = await request(app)
+      .get('/v1/fragments?expand=1')
+      .auth('user1@email.com', 'password1');
+    
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.body.status).toBe('ok');
+    expect(Array.isArray(getRes.body.fragments)).toBe(true);
+    
+    const fragment = getRes.body.fragments.find(f => f.id === fragmentId);
+    expect(fragment).toBeDefined();
+    expect(fragment).toHaveProperty('id');
+    expect(fragment).toHaveProperty('ownerId');
+    expect(fragment).toHaveProperty('type', 'text/plain');
+    expect(fragment).toHaveProperty('size');
+    expect(fragment).toHaveProperty('created');
+    expect(fragment).toHaveProperty('updated');
+  });
 });
+
+
+
+

@@ -21,12 +21,12 @@
 const express = require('express');
 const contentType = require('content-type');
 const logger = require('../../logger');
-const Fragment = require('../../model/fragment'); // <- default export, not { Fragment }
+const Fragment = require('../../model/fragment'); 
 const postFragments = require('./post');
 
 const router = express.Router();
 
-// Health check for /v1 (optional here; your main / GET may already exist)
+// Health check for /v1 
 router.get('/', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json({ status: 'ok' });
@@ -55,5 +55,9 @@ router.get('/fragments', require('./get'));
 
 // Mount POST /v1/fragments with raw body parser
 router.post('/fragments', rawBody(), postFragments);
+
+// New routes for assignment 2 checklist( id-info and id)
+router.get('/fragments/:id/info', require('./get-id-info'));
+router.get('/fragments/:id', require('./get-id'));
 
 module.exports = router;
