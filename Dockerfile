@@ -23,6 +23,7 @@ LABEL description="Fragments node.js microservice"
     
     # copy only what the app needs to run
     COPY ./src ./src
+    COPY ./tests ./tests
     
     USER node
     

@@ -2,8 +2,8 @@
 .vscode/
 coverage/
 node_modules/
-tests/
-!tests/.htpasswd
+# tests/
+# !tests/.htpasswd
 .env
 eslint.config.mjs
 .git/
