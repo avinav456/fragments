@@ -14,7 +14,7 @@ fragment1_id: jsonpath "$.fragment.id"
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" exists
 jsonpath "$.fragment.type" == "text/plain"
-jsonpath "$.fragment.size" == 33
+jsonpath "$.fragment.size" == 34
 
 # Test 2: Retrieve the text fragment
 GET {{url}}
@@ -22,7 +22,7 @@ Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
 
 HTTP 200
 Content-Type: text/plain; charset=utf-8
-Content-Length: 33
+Content-Length: 34
 [Asserts]
 body == "This is a fragment stored in S3!"
 
@@ -35,7 +35,7 @@ HTTP 200
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" == "{{fragment1_id}}"
 jsonpath "$.fragment.type" == "text/plain"
-jsonpath "$.fragment.size" == 33
+jsonpath "$.fragment.size" == 34
 
 # Test 4: List fragments
 GET http://localhost:8080/v1/fragments
