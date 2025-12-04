@@ -1,6 +1,3 @@
-
-
-
 // src/routes/index.js
 const express = require('express');
 
@@ -15,6 +12,8 @@ const { createSuccessResponse } = require('../response');
 
 // Create a router that we can use to mount our API
 const router = express.Router();
+
+const { hostname } = require('os');
 
 /**
  * Expose all of our API routes on /v1/* to include an API version.
@@ -35,6 +34,7 @@ router.get('/', (req, res) => {
       author,
       githubUrl: 'https://github.com/avinav456/fragments',
       version,
+       hostname: hostname(),
     })
   );
 });
