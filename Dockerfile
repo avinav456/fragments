@@ -25,7 +25,7 @@ LABEL description="Fragments node.js microservice"
     COPY ./src ./src
     COPY ./tests ./tests
     
-    USER root
+    
     
  # We run our service on port 8080
 EXPOSE 8080
