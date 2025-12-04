@@ -1,3 +1,105 @@
+
+name: cd
+
+on:
+  push:
+    tags:
+      - 'v**'
+
+jobs:
+  aws:
+    name: AWS ECS CD Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: fragments
+          VERSION_TAG: ${{ github.ref_name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
+
+      - name: Render new Amazon ECS task definition
+        id: update-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: fragments
+          VERSION_TAG: ${{ github.ref_name }}
+        with:
+          task-definition: fragments-definition.json
+          container-name: fragments-container
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
+          environment-variables: |
+            LOG_LEVEL=info
+            NODE_ENV=production
+            PORT=80
+            AWS_REGION=us-east-1
+            AWS_COGNITO_POOL_ID=${{ secrets.AWS_COGNITO_POOL_ID }}
+            AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }}
+            API_URL=${{ secrets.API_URL }}
+
+      - name: Deploy updated task definition to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+          cluster: fragments-cluster
+          service: fragments-task-service-bxoonma8
+          wait-for-service-stability: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ///////////////////////////////////////////////////////////////////////////////////////////
+
 # # Continuous Delivery Workflow
 # #
 # # This should happen whenever we push a new tag, and we tag an existing
@@ -71,44 +173,77 @@
 
 
       # // Updated file below 
-name: cd
+# name: cd
 
-on:
-  push:
-    tags:
-      - 'v**'
+# on:
+#   push:
+#     tags:
+#       - 'v**'
 
-jobs:
-  aws:
-    name: AWS ECR
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+# jobs:
+#   aws:
+#     name: AWS ECR
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Check out code
+#         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v3
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+#           aws-region: us-east-1
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPO: fragments
-          VERSION_TAG: ${{ github.ref_name }}
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          tags: |
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }},
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
+#       - name: Build and push to Amazon ECR
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           ECR_REPO: fragments
+#           VERSION_TAG: ${{ github.ref_name }}
+#         uses: docker/build-push-action@v6
+#         with:
+#           push: true
+#           tags: |
+#             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }},
+#             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
+      
+#         # NEW STEP 1: Update Task Definition with new image and environment vars
+# - name: Fill in the new image ID in the Amazon ECS task definition
+#   id: update-task-def
+#   uses: aws-actions/amazon-ecs-render-task-definition@v1
+#   env:
+#     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#     ECR_REPO: fragments
+#     VERSION_TAG: ${{ github.ref_name }}
+#   with:
+#     task-definition: fragments-definition.json
+#     container-name: fragments-container  # MUST match your container name!
+#     image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
+#     environment-variables: |
+#       LOG_LEVEL=info
+#       NODE_ENV=production
+#       PORT=80
+#       AWS_REGION=us-east-1
+#       AWS_COGNITO_POOL_ID=${{ secrets.AWS_COGNITO_POOL_ID }}
+#       AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }}
+#       API_URL=${{ secrets.API_URL }}
+
+# # NEW STEP 2: Deploy to ECS
+# - name: Deploy Amazon ECS task definition
+#   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+#   with:
+#     task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+#     cluster: fragments-cluster
+#     service: fragments-service
+#     wait-for-service-stability: true
+
+
+
