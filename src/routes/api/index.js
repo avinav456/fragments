@@ -1,23 +1,5 @@
-// // // src/routes/api/index.js
-
-// // /**
-// //  * The main entry-point for the v1 version of the fragments API.
-// //  */
-// // const express = require('express');
-
-// // // Create a router on which to mount our API endpoints
-// // const router = express.Router();
-
-// // // Define our first route, which will be: GET /v1/fragments
-// // router.get('/fragments', require('./get'));
-// // // Other routes (POST, DELETE, etc.) will go here later on...
-
-// // module.exports = router;
-
-// // updated code below 
-// Raw body parser: accept only supported content types, up to 5MB
 // src/routes/api/index.js
-// src/routes/api/index.js
+
 const express = require('express');
 const contentType = require('content-type');
 const logger = require('../../logger');
@@ -59,5 +41,8 @@ router.post('/fragments', rawBody(), postFragments);
 // New routes for assignment 2 checklist( id-info and id)
 router.get('/fragments/:id/info', require('./get-id-info'));
 router.get('/fragments/:id', require('./get-id'));
+
+// DELETE route for deleting fragments (Lab 9)
+router.delete('/fragments/:id', require('./delete'));
 
 module.exports = router;
