@@ -1,22 +1,3 @@
-// // src/routes/api/get.js
-
-// const { createSuccessResponse } = require('../../response');
-
-// /**
-//  * Get a list of fragments for the current user
-//  */
-// module.exports = (req, res) => {
-//   // TODO: this is just a placeholder. To get something working, return an empty array...
-//   //  Refactored to use the centralized success response helper
-//   res.status(200).json(
-//     createSuccessResponse({
-//       // TODO: change me
-//       fragments: [],
-//     })
-//   );
-// };
-
-
 
 // Updated code for get route for Assignment 2
 
