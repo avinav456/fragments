@@ -1,6 +1,6 @@
 # .github/workflows/ci.yml
 
-# Continuous Integration (CI) Workflow
+ # Continuous Integration (CI) Workflow
 name: ci
 
 # This workflow will run whenever we push commits to the `main` branch, or
