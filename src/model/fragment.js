@@ -243,7 +243,6 @@ async convertData(ext) {
   const data = await this.getData();
   const currentMime = this.mimeType;
 
-    // IMAGE CONVERSIONS 
   if (currentMime.startsWith('image/') && ext.match(/\.(png|jpg|jpeg|webp|gif|avif)$/)) {
     const sharp = require('sharp');
     let image = sharp(data);
@@ -351,7 +350,5 @@ async convertData(ext) {
   }
 }
 
-// Export both default and named versions to avoid import mismatches
-module.exports = Fragment;          // default export
-module.exports.Fragment = Fragment; // named export
-
+module.exports = Fragment;          
+module.exports.Fragment = Fragment; 

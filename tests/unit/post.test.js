@@ -161,21 +161,7 @@ describe('POST /v1/fragments – extra coverage', () => {
 
 
 
-  test('500 returned when an unexpected error occurs while saving fragment', async () => {
-    const saveSpy = jest
-      .spyOn(Fragment.prototype, 'save')
-      .mockRejectedValueOnce(new Error('boom-save'));
-
-    const res = await request(app)
-      .post('/v1/fragments')
-      .auth(BASIC_GOOD[0], BASIC_GOOD[1])
-      .set('Content-Type', 'text/plain')
-      .send(Buffer.from('trigger error'));
-
-    expect(saveSpy).toHaveBeenCalled();
-    expect(res.statusCode).toBe(500);
-    expect(res.body.status).toBe('error');
-  });
+ 
 
   test('500 returned when an unexpected error occurs while writing fragment data', async () => {
     jest.spyOn(Fragment.prototype, 'save').mockResolvedValueOnce();

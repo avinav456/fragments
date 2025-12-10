@@ -8,12 +8,6 @@ const postFragments = require('./post');
 
 const router = express.Router();
 
-// Health check for /v1 
-router.get('/', (req, res) => {
-  res.set('Cache-Control', 'no-store');
-  res.json({ status: 'ok' });
-});
-
 // Raw body parser: accept only supported content types, up to 5MB
 const rawBody = () =>
   express.raw({
@@ -26,26 +20,32 @@ const rawBody = () =>
         if (!supported) logger.warn({ type }, 'unsupported content type for raw parser');
         return supported; // true -> Buffer, false -> {}
       } catch (err) {
-        logger.warn({ err }, 'failed to parse content-type for raw parser');
+        logger.warn({ 
+          message: err.message, 
+          type: err.type,
+          contentType: req.get('content-type') 
+        }, 'failed to parse content-type for raw parser');
         return false;
       }
     },
   });
 
-// Keep your existing GET route(s)
+// GET /v1/fragments - list user's fragments
 router.get('/fragments', require('./get'));
 
-// Mount POST /v1/fragments with raw body parser
+// POST /v1/fragments - create new fragment with raw body parser
 router.post('/fragments', rawBody(), postFragments);
 
-// New routes for assignment 2 checklist( id-info and id)
+// GET /v1/fragments/:id/info - get fragment metadata
 router.get('/fragments/:id/info', require('./get-id-info'));
+
+// GET /v1/fragments/:id - get fragment data (with optional conversion)
 router.get('/fragments/:id', require('./get-id'));
 
-// DELETE route for deleting fragments (Lab 9)
+// DELETE /v1/fragments/:id - delete fragment
 router.delete('/fragments/:id', require('./delete'));
 
-// PUT route for updating fragments
+// PUT /v1/fragments/:id - update fragment
 router.put('/fragments/:id', rawBody(), require('./put'));
 
 module.exports = router;
