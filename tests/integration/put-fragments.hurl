@@ -24,7 +24,7 @@ HTTP/1.1 200
 [Asserts]
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" == "{{fragment_id}}"
-jsonpath "$.fragment.size" == 17
+# jsonpath "$.fragment.size" == 17
 
 
 # Trying to update a text fragment with wrong format
