@@ -201,13 +201,19 @@ const {
   deleteFragment,
 } = require('./data');
 
-// Supported base mime types for Assignment 2
+// Supported base mime types for Assignment 3
 const SUPPORTED = new Set([
   'text/plain',
   'text/markdown',
   'text/html',
   'text/csv',
   'application/json',
+  'application/yaml',    
+  'image/png',          
+  'image/jpeg',          
+  'image/webp',          
+  'image/avif',          
+  'image/gif',           
 ]);
 
 /**
@@ -364,23 +370,27 @@ class Fragment {
    * For A2, ALl text/* format is supported.
    * @returns {string[]}
    */
- get formats() {
+get formats() {
   const mime = this.mimeType;
   
-  // Define valid conversion formats for each type
   const conversions = {
     'text/plain': ['text/plain'],
     'text/markdown': ['text/markdown', 'text/html', 'text/plain'],
     'text/html': ['text/html', 'text/plain'],
     'text/csv': ['text/csv', 'text/plain', 'application/json'],
-    'application/json': ['application/json', 'text/plain'],
+    'application/json': ['application/json', 'application/yaml', 'text/plain'],
+    'application/yaml': ['application/yaml', 'text/plain'],
+    'image/png': ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'],
+    'image/jpeg': ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'],
+    'image/webp': ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'],
+    'image/gif': ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'],
+    'image/avif': ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'],
   };
   
   return conversions[mime] || [mime];
 }
 
-
-///  THe below are the conversion method for Assignment 2
+///  THe below are the conversion method for Assignment 3
 /**
  * Check if a conversion from current type to extension is valid
  * @param {string} ext - File extension (e.g., '.html', '.txt')
@@ -392,7 +402,15 @@ canConvertTo(ext) {
     '.md': 'text/markdown',
     '.html': 'text/html',
     '.json': 'application/json',
+    '.yaml': 'application/yaml',
+    '.yml': 'application/yaml',
     '.csv': 'text/csv',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.gif': 'image/gif',
+    '.avif': 'image/avif',
   };
   
   const targetMime = extToMime[ext];
@@ -409,6 +427,29 @@ canConvertTo(ext) {
 async convertData(ext) {
   const data = await this.getData();
   const currentMime = this.mimeType;
+
+    // IMAGE CONVERSIONS 
+  if (currentMime.startsWith('image/') && ext.match(/\.(png|jpg|jpeg|webp|gif|avif)$/)) {
+    const sharp = require('sharp');
+    let image = sharp(data);
+    
+    if (ext === '.png') {
+      const converted = await image.png().toBuffer();
+      return { data: converted, contentType: 'image/png' };
+    } else if (ext === '.jpg' || ext === '.jpeg') {
+      const converted = await image.jpeg().toBuffer();
+      return { data: converted, contentType: 'image/jpeg' };
+    } else if (ext === '.webp') {
+      const converted = await image.webp().toBuffer();
+      return { data: converted, contentType: 'image/webp' };
+    } else if (ext === '.gif') {
+      const converted = await image.gif().toBuffer();
+      return { data: converted, contentType: 'image/gif' };
+    } else if (ext === '.avif') {
+      const converted = await image.avif().toBuffer();
+      return { data: converted, contentType: 'image/avif' };
+    }
+  }
   
   // Markdown to HTML conversion
   if (currentMime === 'text/markdown' && ext === '.html') {

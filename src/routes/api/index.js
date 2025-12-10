@@ -45,4 +45,7 @@ router.get('/fragments/:id', require('./get-id'));
 // DELETE route for deleting fragments (Lab 9)
 router.delete('/fragments/:id', require('./delete'));
 
+// PUT route for updating fragments
+router.put('/fragments/:id', rawBody(), require('./put'));
+
 module.exports = router;
