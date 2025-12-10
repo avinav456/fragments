@@ -98,18 +98,18 @@ jobs:
       - name: Build Containers
         run: docker compose up -d
         
-      #  Remove the below step after debuging 
-      - name: Wait for containers to be ready
-        run: |
-          echo "Waiting for containers to start..."
-          sleep 10
-          echo "Container status:"
-          docker compose ps
-          echo "Fragments logs:"
-          docker compose logs fragments
-          echo "Waiting for health endpoint..."
-          timeout 90 bash -c 'until curl -f http://localhost:8080 > /dev/null 2>&1; do echo "Waiting..."; sleep 3; done' || (docker compose logs && exit 1)
-          echo "Fragments service is ready!"
+      # #  Remove the below step after debuging 
+      # - name: Wait for containers to be ready
+      #   run: |
+      #     echo "Waiting for containers to start..."
+      #     sleep 10
+      #     echo "Container status:"
+      #     docker compose ps
+      #     echo "Fragments logs:"
+      #     docker compose logs fragments
+      #     echo "Waiting for health endpoint..."
+      #     timeout 90 bash -c 'until curl -f http://localhost:8080 > /dev/null 2>&1; do echo "Waiting..."; sleep 3; done' || (docker compose logs && exit 1)
+      #     echo "Fragments service is ready!"
       
       - name: Setup Local AWS Resources
         run: |
