@@ -2,6 +2,16 @@
 
 A lightweight REST API microservice for storing and retrieving fragments of data (text, JSON, images, and more), with built-in type conversion and AWS cloud support.
 
+## Overview
+
+Fragments is a cloud-native microservice that allows authenticated users to store, manage, and retrieve arbitrary pieces of data called "fragments". Each fragment can be any supported content type — plain text, Markdown, HTML, CSV, JSON, YAML, or images (PNG, JPEG, WebP, GIF, AVIF).
+
+What makes Fragments useful is its on-the-fly type conversion. For example, you can store a fragment as Markdown and retrieve it as rendered HTML, or store an image as PNG and get it back as JPEG — all through the same API without any extra tooling.
+
+The service is designed to be storage-agnostic. In development it runs entirely in memory with no external dependencies. In production it connects to AWS S3 (for raw fragment data) and DynamoDB (for metadata), and authenticates users via AWS Cognito JWT tokens. This makes it easy to develop and test locally, then deploy to the cloud without changing any application code.
+
+Authentication is enforced on all data routes. Every fragment is scoped to its owner, so users can only access their own data.
+
 ## Getting Started
 
 ### Prerequisites
