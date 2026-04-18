@@ -95,6 +95,4 @@ fragments/
 └── package.json
 ```
 
-## License
 
-[MIT](https://opensource.org/licenses/MIT)
